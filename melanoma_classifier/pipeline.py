@@ -3,7 +3,12 @@
 __all__ = ['get_x', 'get_y', 'vocab', 'patient_id_splitter', 'build_DataBlock', 'get_preds', 'create_submission_csv']
 
 # Cell
-def get_x(r): return path_images/f'{str(r["image_name"])}.dcm'
+from nbdev.showdoc import *
+from fastai.medical.imaging import *
+from fastai.vision.all import *
+
+# Cell
+def get_x(r, path_images=None): return path_images/f'{str(r["image_name"])}.dcm'
 def get_y(r): return r['benign_malignant']
 
 # Cell
@@ -16,7 +21,7 @@ def patient_id_splitter(df, val_pct, iteration_set_num_patients, seed):
     If no value for 'iteration_set_num_patients' is passed, entire dataset is used.
     """
     np.random.seed(seed)
-    patient_ids = df_train['patient_id'].unique()
+    patient_ids = df['patient_id'].unique()
     if iteration_set_num_patients is not None: patient_ids = np.random.choice(patient_ids, iteration_set_num_patients, replace=False)
     split_idx = int(len(patient_ids)*val_pct)
     train = df[df['patient_id'].isin(patient_ids[split_idx:])].index.values
@@ -24,10 +29,10 @@ def patient_id_splitter(df, val_pct, iteration_set_num_patients, seed):
     return train, valid
 
 # Cell
-def build_DataBlock(val_pct=0.2, seed=42, iteration_set_num_patients=None):
+def build_DataBlock(path_images, val_pct=0.2, seed=42, iteration_set_num_patients=None):
     """Builds DataBlock for benign/malignant classification of DICOM images of moles, for melanoma."""
     return DataBlock(blocks=(ImageBlock(cls=PILDicom), CategoryBlock(vocab=vocab)),
-                    get_x=get_x, get_y=get_y,
+                    get_x=partial(get_x, path_images=path_images), get_y=get_y,
                     splitter=partial(patient_id_splitter, val_pct=val_pct, iteration_set_num_patients=iteration_set_num_patients, seed=seed))
 
 # Cell
