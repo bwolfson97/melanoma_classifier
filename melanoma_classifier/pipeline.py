@@ -40,7 +40,7 @@ def get_preds(learn, path_to_test_csv):
     """Generates predictions and formats them for submission file."""
     test_dl = learn.dls.test_dl(pd.read_csv(path_to_test_csv))
     probs = learn.get_preds(dl=test_dl)[0]
-    return probs.argmax(dim=1)
+    return probs[1] # Return prob of target class
 
 # Cell
 def create_submission_csv(path, preds):
